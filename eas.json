@@ -1,0 +1,32 @@
+{
+  "cli": {
+    "version": ">= 27.1.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk" // un .apk installable directement sur le téléphone
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk" // version sans dev-client, pour tes testeurs terrain
+      },
+      "env": {
+        // TODO: mets ici tes vraies valeurs (voir remarque ci-dessous)
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xrzdbkhrjmtizocebgqd.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_wg256wWL4003EX0iPKerlA_9AxWhcMG"
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

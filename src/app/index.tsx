@@ -1,98 +1,122 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppButton } from "@/components/app-button";
+import { DirectionPicker } from "@/components/direction-picker";
+import { LinePicker } from "@/components/line-picker";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Spacing } from "@/constants/theme";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLines } from "../../lib/lines";
+import { ReportType, sendReport } from "../../lib/reports";
+import { useGpsPing } from "../../lib/useGpsping";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+export default function Home() {
+  const [line, setLine] = useState<string | null>(null);
+  const [direction, setDirection] = useState<0 | 1>(0);
+  const { active, pingCount, session, lastError, start, stop } = useGpsPing();
+  const [reportMsg, setReportMsg] = useState<string | null>(null);
+  const { lines, loading } = useLines();
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+  useEffect(() => {
+    if (session) {
+      setLine(session.line);
+      setDirection(session.direction);
+    }
+  }, [session]);
+
+  function handleStart() {
+    if (!line) return;
+    start(line, direction);
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
+
+  async function report(type: ReportType) {
+    if (!line) return;
+    try {
+      const r = await sendReport(line, direction, type);
+      setReportMsg(
+        r === "ok"
+          ? "Signalement envoyé, merci !"
+          : r === "duplicate"
+            ? "Déjà signalé récemment"
+            : "Active d'abord le partage de position",
+      );
+    } catch (e: any) {
+      setReportMsg("Échec : " + e.message);
+    }
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
 
-export default function HomeScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <ThemedView
+        style={{
+          flex: 1,
+          padding: Spacing.four,
+          gap: Spacing.three,
+          justifyContent: "center",
+        }}
+      >
+        <StatusBar style="auto" />
 
-        <ThemedText type="code" style={styles.code}>
-          get started
+        <ThemedText type="subtitle">Je suis dans le bus</ThemedText>
+
+        <ThemedText themeColor="textSecondary">
+          {line
+            ? `${line} · ${direction === 0 ? "vers Campus" : "depuis Campus"}`
+            : "Choisis une ligne"}
         </ThemedText>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+        {/* On fige le choix pendant le trajet : changer de ligne en route fausserait les pings */}
+        <LinePicker
+          lines={lines}
+          selected={line}
+          onSelect={setLine}
+          disabled={active}
+        />
+        <DirectionPicker
+          selected={direction}
+          onSelect={setDirection}
+          disabled={active}
+        />
+
+        <AppButton
+          title={active ? "Je descends" : "Je suis dans le bus"}
+          onPress={active ? stop : handleStart}
+          disabled={!line}
+          variant="primary"
+        />
+
+        <ThemedText themeColor="textSecondary" type="small">
+          Pings envoyés : {pingCount}
+        </ThemedText>
+        {lastError && (
+          <ThemedText style={{ color: "#D93025" }} type="small">
+            {lastError}
+          </ThemedText>
+        )}
+
+        <ThemedView
+          type="backgroundElement"
+          style={{
+            flexDirection: "row",
+            gap: Spacing.two,
+            borderRadius: 12,
+            padding: Spacing.three,
+          }}
+        >
+          <AppButton
+            title="Bus complet"
+            onPress={() => report("FULL")}
+            disabled={!active}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
+          <AppButton
+            title="En panne"
+            onPress={() => report("BREAKDOWN")}
+            disabled={!active}
           />
         </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        {reportMsg && <ThemedText type="small">{reportMsg}</ThemedText>}
+      </ThemedView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
