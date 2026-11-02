@@ -30,15 +30,12 @@ export function DirectionPicker({ selected, onSelect, disabled }: Props) {
               paddingVertical: Spacing.two,
               paddingHorizontal: Spacing.three,
               borderRadius: 10,
-              backgroundColor: active
-                ? theme.backgroundSelected
-                : theme.backgroundElement,
+              backgroundColor: active ? theme.tint : theme.backgroundElement,
+
               opacity: disabled && !active ? 0.5 : 1,
             }}
           >
-            <ThemedText
-              style={{ color: active ? theme.text : theme.textSecondary }}
-            >
+            <ThemedText style={{ color: active ? theme.onTint : theme.text }}>
               {o.label}
             </ThemedText>
           </Pressable>

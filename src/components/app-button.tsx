@@ -1,19 +1,21 @@
 import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { Pressable, StyleSheet } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet } from "react-native";
 
 type Props = {
   title: string;
   onPress: () => void;
   disabled?: boolean;
-  variant?: "primary" | "secondary"; // primary = action principale, secondary = action secondaire
+  loading?: boolean;
+  variant?: "primary" | "secondary";
 };
 
 export function AppButton({
   title,
   onPress,
   disabled,
+  loading,
   variant = "secondary",
 }: Props) {
   const theme = useTheme();
@@ -22,21 +24,28 @@ export function AppButton({
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || loading}
       style={[
         styles.base,
         {
-          backgroundColor: isPrimary ? theme.text : theme.backgroundElement,
+          backgroundColor: isPrimary ? theme.tint : theme.backgroundElement,
           opacity: disabled ? 0.5 : 1,
         },
       ]}
     >
-      <ThemedText
-        type="smallBold"
-        style={{ color: isPrimary ? theme.background : theme.text }}
-      >
-        {title}
-      </ThemedText>
+      {loading ? (
+        <ActivityIndicator
+          size="small"
+          color={isPrimary ? theme.onTint : theme.tint}
+        />
+      ) : (
+        <ThemedText
+          type="smallBold"
+          style={{ color: isPrimary ? theme.onTint : theme.text }}
+        >
+          {title}
+        </ThemedText>
+      )}
     </Pressable>
   );
 }
@@ -47,5 +56,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: 10,
     alignItems: "center",
+    justifyContent: "center",
+    minHeight: 44,
   },
 });

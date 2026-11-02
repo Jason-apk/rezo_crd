@@ -1,40 +1,32 @@
 import { AppButton } from "@/components/app-button";
 import { DirectionPicker } from "@/components/direction-picker";
+import { InlineLoader } from "@/components/inline-loader";
 import { LinePicker } from "@/components/line-picker";
+import { RouteBadge } from "@/components/route-badge";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { BottomTabInset, Spacing } from "@/constants/theme";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { fetchStops, StopItem, useEta } from "../../lib/eta";
-import { useLines } from "../../lib/lines";
+import { useEta } from "../../lib/eta";
+import { getAvailableLines, getStops, type StopItem } from "../../lib/stops";
 
+const lines = getAvailableLines();
 const COLORS = { GREEN: "#2E9E4F", ORANGE: "#F08A00", RED: "#D93025" } as const;
-const LABELS = {
-  FULL: "Le prochain bus est complet",
-  BREAKDOWN:
-    "Le prochain bus est signalé en panne : son heure d'arrivée est incertaine",
-} as const;
+const REPORT_LABEL = "Signalé en panne : son heure d'arrivée est incertaine";
 
 export default function Wait() {
-  const { lines } = useLines();
   const [line, setLine] = useState<string | null>(null);
   const [direction, setDirection] = useState<0 | 1>(0);
-  const [stops, setStops] = useState<StopItem[]>([]);
   const [stopId, setStopId] = useState<string | null>(null);
-  const { eta, updatedAt, offline } = useEta(stopId, line, direction);
+  const { eta, loading, updatedAt, offline } = useEta(stopId, line, direction);
+
+  const stops: StopItem[] = line ? getStops(line, direction) : [];
 
   useEffect(() => {
     setStopId(null);
-    if (!line) return;
-    fetchStops(line, direction)
-      .then(setStops)
-      .catch((e) => {
-        console.log("fetchStops erreur :", e);
-        setStops([]);
-      });
   }, [line, direction]);
 
   const color = eta ? COLORS[eta.status] : "#888888";
@@ -43,26 +35,25 @@ export default function Wait() {
     minute: "2-digit",
   });
   const selected = stops.find((s) => s.id === stopId);
+  const breakdown = eta?.reports?.find((r) => r.type === "BREAKDOWN");
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <ThemedView
         style={{ flex: 1, padding: Spacing.four, gap: Spacing.three }}
       >
-        <StatusBar style="auto" />
-
-        <ThemedText type="subtitle">J'attends le bus</ThemedText>
+        <ThemedText type="subtitle">Le réseau en direct</ThemedText>
 
         <LinePicker lines={lines} selected={line} onSelect={setLine} />
         <DirectionPicker selected={direction} onSelect={setDirection} />
 
+        <RouteBadge line={line} direction={direction} />
         {selected && (
           <ThemedText themeColor="textSecondary">
             Arrêt : {selected.name}
           </ThemedText>
         )}
 
-        {/* Bloc ETA géant : couleur de statut, volontairement indépendante du thème (sémantique) */}
         <ThemedView
           style={{
             backgroundColor: color,
@@ -77,11 +68,9 @@ export default function Wait() {
             <ThemedText style={{ fontSize: 22, color: "#fff" }}>
               Choisis ton arrêt
             </ThemedText>
-          ) : !eta ? (
-            <ThemedText style={{ fontSize: 22, color: "#fff" }}>
-              Chargement…
-            </ThemedText>
-          ) : eta.source === "live" ? (
+          ) : loading ? (
+            <InlineLoader />
+          ) : eta?.source === "live" ? (
             <ThemedText
               style={{ fontSize: 64, fontWeight: "700", color: "#fff" }}
             >
@@ -96,9 +85,8 @@ export default function Wait() {
           )}
         </ThemedView>
 
-        {eta?.reports?.map((r) => (
+        {breakdown && (
           <ThemedView
-            key={r.type}
             style={{
               backgroundColor: "#FFF3CD",
               padding: Spacing.three,
@@ -106,11 +94,11 @@ export default function Wait() {
             }}
           >
             <ThemedText style={{ color: "#5C4A00" }}>
-              ⚠️ {LABELS[r.type]} · signalé par {r.count} personne
-              {r.count > 1 ? "s" : ""}
+              ⚠️ {REPORT_LABEL} · {breakdown.count} signalement
+              {breakdown.count > 1 ? "s" : ""}
             </ThemedText>
           </ThemedView>
-        ))}
+        )}
 
         {offline && (
           <ThemedText
@@ -137,6 +125,8 @@ export default function Wait() {
             />
           ))}
         </ScrollView>
+
+        <WhatsAppButton variant="floating" />
       </ThemedView>
     </SafeAreaView>
   );

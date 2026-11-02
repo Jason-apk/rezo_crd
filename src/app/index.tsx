@@ -1,22 +1,27 @@
 import { AppButton } from "@/components/app-button";
 import { DirectionPicker } from "@/components/direction-picker";
 import { LinePicker } from "@/components/line-picker";
+import { RouteBadge } from "@/components/route-badge";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { Spacing } from "@/constants/theme";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLines } from "../../lib/lines";
-import { ReportType, sendReport } from "../../lib/reports";
+import { sendReport } from "../../lib/reports";
+import { getAvailableLines } from "../../lib/stops";
 import { useGpsPing } from "../../lib/useGpsping";
+
+const lines = getAvailableLines();
 
 export default function Home() {
   const [line, setLine] = useState<string | null>(null);
   const [direction, setDirection] = useState<0 | 1>(0);
   const { active, pingCount, session, lastError, start, stop } = useGpsPing();
+  const [starting, setStarting] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [reportMsg, setReportMsg] = useState<string | null>(null);
-  const { lines, loading } = useLines();
 
   useEffect(() => {
     if (session) {
@@ -25,48 +30,55 @@ export default function Home() {
     }
   }, [session]);
 
-  function handleStart() {
+  async function handleToggle() {
+    if (active) {
+      await stop();
+      return;
+    }
     if (!line) return;
-    start(line, direction);
+    setStarting(true);
+    try {
+      await start(line, direction);
+    } finally {
+      setStarting(false);
+    }
   }
 
-  async function report(type: ReportType) {
+  async function handleReport() {
     if (!line) return;
+    setReporting(true);
     try {
-      const r = await sendReport(line, direction, type);
+      const r = await sendReport(line, direction);
       setReportMsg(
         r === "ok"
-          ? "Signalement envoyé, merci !"
+          ? "Merci, ta contribution aide tout le réseau !"
           : r === "duplicate"
             ? "Déjà signalé récemment"
-            : "Active d'abord le partage de position",
+            : "Connecte-toi d'abord au réseau",
       );
     } catch (e: any) {
       setReportMsg("Échec : " + e.message);
+    } finally {
+      setReporting(false);
     }
   }
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <ThemedView
-        style={{
-          flex: 1,
-          padding: Spacing.four,
-          gap: Spacing.three,
-          justifyContent: "center",
-        }}
+        style={{ flex: 1, padding: Spacing.four, gap: Spacing.three }}
       >
-        <StatusBar style="auto" />
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <ThemedText type="subtitle">Rejoins le réseau</ThemedText>
+          <WhatsAppButton variant="corner" />
+        </View>
 
-        <ThemedText type="subtitle">Je suis dans le bus</ThemedText>
-
-        <ThemedText themeColor="textSecondary">
-          {line
-            ? `${line} · ${direction === 0 ? "vers Campus" : "depuis Campus"}`
-            : "Choisis une ligne"}
-        </ThemedText>
-
-        {/* On fige le choix pendant le trajet : changer de ligne en route fausserait les pings */}
         <LinePicker
           lines={lines}
           selected={line}
@@ -79,15 +91,20 @@ export default function Home() {
           disabled={active}
         />
 
+        <RouteBadge line={line} direction={direction} />
+
         <AppButton
-          title={active ? "Je descends" : "Je suis dans le bus"}
-          onPress={active ? stop : handleStart}
+          title={
+            active ? "Je me déconnecte du réseau" : "Je me connecte au réseau"
+          }
+          onPress={handleToggle}
           disabled={!line}
+          loading={starting}
           variant="primary"
         />
 
         <ThemedText themeColor="textSecondary" type="small">
-          Pings envoyés : {pingCount}
+          Contributions envoyées : {pingCount}
         </ThemedText>
         {lastError && (
           <ThemedText style={{ color: "#D93025" }} type="small">
@@ -95,26 +112,12 @@ export default function Home() {
           </ThemedText>
         )}
 
-        <ThemedView
-          type="backgroundElement"
-          style={{
-            flexDirection: "row",
-            gap: Spacing.two,
-            borderRadius: 12,
-            padding: Spacing.three,
-          }}
-        >
-          <AppButton
-            title="Bus complet"
-            onPress={() => report("FULL")}
-            disabled={!active}
-          />
-          <AppButton
-            title="En panne"
-            onPress={() => report("BREAKDOWN")}
-            disabled={!active}
-          />
-        </ThemedView>
+        <AppButton
+          title="Signaler une panne"
+          onPress={handleReport}
+          disabled={!active}
+          loading={reporting}
+        />
         {reportMsg && <ThemedText type="small">{reportMsg}</ThemedText>}
       </ThemedView>
     </SafeAreaView>

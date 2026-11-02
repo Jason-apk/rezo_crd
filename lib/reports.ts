@@ -3,12 +3,12 @@ import { getDeviceId } from "./deviceId";
 import { ensureLocationPermission } from "./pings";
 import { supabase } from "./supabase";
 
-export type ReportType = "FULL" | "BREAKDOWN";
+export type ReportType = "BREAKDOWN";
 
 export async function sendReport(
   line: string,
   direction: 0 | 1,
-  type: ReportType,
+  type: ReportType = "BREAKDOWN",
 ): Promise<"ok" | "duplicate" | "not_on_board"> {
   if (!(await ensureLocationPermission())) {
     throw new Error("Permission de localisation refusée");

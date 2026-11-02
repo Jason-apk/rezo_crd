@@ -3,7 +3,7 @@ import { ThemedText } from "@/components/themed-text";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { Pressable, View } from "react-native";
-import type { Line } from "../../lib/lines";
+import type { Line } from "../../lib/stops";
 
 type Props = {
   lines: Line[];
@@ -21,22 +21,19 @@ export function LinePicker({ lines, selected, onSelect, disabled }: Props) {
         const active = line.number === selected;
         return (
           <Pressable
-            key={line.id}
+            key={line.number}
             onPress={() => onSelect(line.number)}
             disabled={disabled}
             style={{
               paddingVertical: Spacing.two,
               paddingHorizontal: Spacing.three,
               borderRadius: 10,
-              backgroundColor: active
-                ? theme.backgroundSelected
-                : theme.backgroundElement,
+              backgroundColor: active ? theme.tint : theme.backgroundElement,
+
               opacity: disabled && !active ? 0.5 : 1,
             }}
           >
-            <ThemedText
-              style={{ color: active ? theme.text : theme.textSecondary }}
-            >
+            <ThemedText style={{ color: active ? theme.onTint : theme.text }}>
               {line.number}
             </ThemedText>
           </Pressable>
