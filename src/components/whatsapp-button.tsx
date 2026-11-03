@@ -41,14 +41,15 @@ export function WhatsAppButton({ variant }: Props) {
 
       <Modal
         visible={open}
-        transparent
+        presentationStyle="fullScreen"
+        backdropColor="rgba(0,0,0,0.5)"
         animationType="fade"
         onRequestClose={() => setOpen(false)}
       >
         <Pressable
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0, 0, 0, 0.69)",
             justifyContent: "flex-end",
           }}
           onPress={() => setOpen(false)}
@@ -56,6 +57,8 @@ export function WhatsAppButton({ variant }: Props) {
           <Pressable onPress={(e) => e.stopPropagation()}>
             <ThemedView
               style={{
+                //   marginBottom: "50%",
+
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
                 padding: Spacing.four,

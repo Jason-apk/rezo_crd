@@ -1,7 +1,9 @@
 /**
- * Données locales des lignes SOTRAL L18 et L19 (arrêts ordonnés par ligne et par sens).
+ * Données locales des lignes SOTRAL L12, L18 et L19 (arrêts ordonnés par ligne et par sens).
  * Source : tables Supabase (line_stops + bus_stops) — les `id` sont les UUID Supabase.
- * Convention : "aller" = vers Campus Nord (direction 0), "retour" = depuis Campus Nord (direction 1).
+ * Convention de sens (direction 0 = "aller", direction 1 = "retour") :
+ *  - L18, L19 : aller = vers Campus Nord, retour = depuis Campus Nord.
+ *  - L12      : aller = Entreprise de l'Union -> BIA, retour = BIA -> Entreprise de l'Union.
  */
 
 export type StopPoint = {
@@ -14,8 +16,483 @@ export type StopPoint = {
 
 export type Stop = StopPoint[];
 
-export type LineNumber = "L18" | "L19";
+export type LineNumber = "L12" | "L18" | "L19";
 export type Direction = "aller" | "retour";
+
+export const L12_stops_aller: Stop = [
+  {
+    id: "51fd53bb-885f-4bc6-af44-d6d5232fb65b",
+    nom: "Entreprise de l'Union",
+    lat: 6.218586,
+    lon: 1.169066,
+    ordre: 1,
+  },
+  {
+    id: "cef5d621-a57e-46e5-aaaf-e0e500d46e00",
+    nom: "Pharmacie Dieu Donnée",
+    lat: 6.216188,
+    lon: 1.17184,
+    ordre: 2,
+  },
+  {
+    id: "f83d7403-b3c4-4ea0-8209-11fb8ce26f4e",
+    nom: "Antenne Moov",
+    lat: 6.213584,
+    lon: 1.174855,
+    ordre: 3,
+  },
+  {
+    id: "5522ca6a-d8a4-4e96-935d-b246fe5b42a1",
+    nom: "Pharmacie des Orchidées",
+    lat: 6.212244,
+    lon: 1.176435,
+    ordre: 4,
+  },
+  {
+    id: "1cba1bed-0e38-4c4e-b9b0-188ec1b0ca3e",
+    nom: "Complexe scolaire la Volonté",
+    lat: 6.210075,
+    lon: 1.17894,
+    ordre: 5,
+  },
+  {
+    id: "72da16f7-c2c4-4a52-a883-bded7669015d",
+    nom: "Bar la FIESTA",
+    lat: 6.207698,
+    lon: 1.181718,
+    ordre: 6,
+  },
+  {
+    id: "7e05dccd-4ead-4410-8344-ef95d473f8aa",
+    nom: "Complexe scolaire le Jourdain",
+    lat: 6.204693,
+    lon: 1.181997,
+    ordre: 7,
+  },
+  {
+    id: "2c5ad220-721f-4603-8b51-d425d708b6a4",
+    nom: "Orabank/Limousine",
+    lat: 6.201447,
+    lon: 1.18129,
+    ordre: 8,
+  },
+  {
+    id: "c69651f6-2987-4164-9415-63f69baf9c28",
+    nom: "Hôtel Nathanael",
+    lat: 6.203662,
+    lon: 1.184461,
+    ordre: 9,
+  },
+  {
+    id: "7c15b9c0-5993-4286-a70d-eb4bf6c8c4b7",
+    nom: "Fin pavé Adidoadin",
+    lat: 6.203692,
+    lon: 1.18724,
+    ordre: 10,
+  },
+  {
+    id: "ade5f0b2-d295-4888-adb6-5d9ec9563433",
+    nom: "Jess Hôtel",
+    lat: 6.198814,
+    lon: 1.188513,
+    ordre: 11,
+  },
+  {
+    id: "5e26b608-9d20-42e8-9996-9fb2523102f8",
+    nom: "Marché Totsi",
+    lat: 6.194707,
+    lon: 1.18932,
+    ordre: 12,
+  },
+  {
+    id: "05f1889d-a2cc-4bb3-85bd-2c37b555f45a",
+    nom: "Carrefour Gblinkomè",
+    lat: 6.191099,
+    lon: 1.191328,
+    ordre: 13,
+  },
+  {
+    id: "78675c7d-1768-4d7e-a93d-37827301b85d",
+    nom: "ADEBAYOR",
+    lat: 6.186305,
+    lon: 1.193415,
+    ordre: 14,
+  },
+  {
+    id: "253f8916-e7fe-4cd4-9cca-ebe85bf8e149",
+    nom: "Commissariat 6ème arrondissement",
+    lat: 6.184435,
+    lon: 1.194178,
+    ordre: 15,
+  },
+  {
+    id: "164fee08-4af8-4c01-9fb4-db0a80faf9c1",
+    nom: "Pharmacie Djidjolé",
+    lat: 6.181054,
+    lon: 1.195366,
+    ordre: 16,
+  },
+  {
+    id: "96fb5d34-684c-4d45-84ce-04236bfb303f",
+    nom: "Baobab",
+    lat: 6.177702,
+    lon: 1.196707,
+    ordre: 17,
+  },
+  {
+    id: "98a2a73c-e39f-40e3-be32-b72ec26d86fe",
+    nom: "EPP GAKLI",
+    lat: 6.174042,
+    lon: 1.19829,
+    ordre: 18,
+  },
+  {
+    id: "35a62b4b-8900-4c18-94a2-7b7d50d3c13c",
+    nom: "Commissariat Donou",
+    lat: 6.170485,
+    lon: 1.199293,
+    ordre: 19,
+  },
+  {
+    id: "c3f3618a-f5db-4f6d-8bfb-a32e784c649e",
+    nom: "Total Atikoumé",
+    lat: 6.167589,
+    lon: 1.201411,
+    ordre: 20,
+  },
+  {
+    id: "5a95b27a-e68b-4e23-882c-50daec0f7ce3",
+    nom: "Atikpamonou",
+    lat: 6.162376,
+    lon: 1.201946,
+    ordre: 21,
+  },
+  {
+    id: "7fb4c113-7c3f-411d-8931-54e94d3b7fa2",
+    nom: "Todman",
+    lat: 6.158125,
+    lon: 1.201661,
+    ordre: 22,
+  },
+  {
+    id: "f3e35de7-4f21-4a5f-8ed9-7e26175e7863",
+    nom: "Collège Plateau",
+    lat: 6.153805,
+    lon: 1.201478,
+    ordre: 23,
+  },
+  {
+    id: "cd960676-4440-4b1a-8b49-9e5e052051e1",
+    nom: "Cap Cassablanca",
+    lat: 6.150421,
+    lon: 1.201343,
+    ordre: 24,
+  },
+  {
+    id: "3511ae26-14ef-4521-8ac2-6fdbba0ef55e",
+    nom: "Collège Protestant",
+    lat: 6.146343,
+    lon: 1.203905,
+    ordre: 25,
+  },
+  {
+    id: "7a3d02a1-4be7-4ebe-b876-25b867a4a2c6",
+    nom: "CHU Sylvanus Olympio",
+    lat: 6.142676,
+    lon: 1.207354,
+    ordre: 26,
+  },
+  {
+    id: "ac2ebfa7-8e2b-4add-a5f3-acfdd6c3061f",
+    nom: "Shell Togbato",
+    lat: 6.136672,
+    lon: 1.210938,
+    ordre: 27,
+  },
+  {
+    id: "355a7135-8367-46a5-b1ef-d443fb88ff0b",
+    nom: "Total Boulevard",
+    lat: 6.131212,
+    lon: 1.212087,
+    ordre: 28,
+  },
+  {
+    id: "441ae69b-da16-403c-a348-74d5ae884033",
+    nom: "Orabank",
+    lat: 6.130461,
+    lon: 1.213379,
+    ordre: 29,
+  },
+  {
+    id: "76120106-494c-41cb-9abc-c29923a492b9",
+    nom: "Mairie Centrale",
+    lat: 6.131871,
+    lon: 1.215688,
+    ordre: 30,
+  },
+  {
+    id: "8757db4b-db67-4d76-ab24-7aec4a7bea2d",
+    nom: "CNPP",
+    lat: 6.131878,
+    lon: 1.217947,
+    ordre: 31,
+  },
+  {
+    id: "07e04041-e14e-4cf0-ae0e-e46d122c7c90",
+    nom: "Bibliothèque Nationale",
+    lat: 6.129339,
+    lon: 1.218682,
+    ordre: 32,
+  },
+  {
+    id: "23e628b1-38e5-405c-ae73-878a425acec1",
+    nom: "Service d'Hygiène",
+    lat: 6.126803,
+    lon: 1.220569,
+    ordre: 33,
+  },
+  {
+    id: "8408c725-2e81-42cc-8140-466553ff8a39",
+    nom: "Fonction Publique",
+    lat: 6.122333,
+    lon: 1.222087,
+    ordre: 34,
+  },
+  {
+    id: "7a86fe2f-8738-46e2-88a1-1dfe5296cf57",
+    nom: "BIA",
+    lat: 6.124111,
+    lon: 1.22477,
+    ordre: 35,
+  },
+];
+
+export const L12_stops_retour: Stop = [
+  {
+    id: "7a86fe2f-8738-46e2-88a1-1dfe5296cf57",
+    nom: "BIA",
+    lat: 6.124111,
+    lon: 1.22477,
+    ordre: 1,
+  },
+  {
+    id: "e1500014-e4a6-48f3-876b-1b8ac6b4617c",
+    nom: "Transport Routier",
+    lat: 6.129881,
+    lon: 1.220672,
+    ordre: 2,
+  },
+  {
+    id: "f5a6117d-6eda-47a4-a6a7-e4ade9890027",
+    nom: "Siège SOTRAL",
+    lat: 6.130437,
+    lon: 1.219331,
+    ordre: 3,
+  },
+  {
+    id: "ced01081-1467-4baa-b2b3-37ce4916774f",
+    nom: "CNPP",
+    lat: 6.13215,
+    lon: 1.217585,
+    ordre: 4,
+  },
+  {
+    id: "d139000b-1821-4085-80f1-995ca43111a9",
+    nom: "Etat Civil Central",
+    lat: 6.134429,
+    lon: 1.214549,
+    ordre: 5,
+  },
+  {
+    id: "3e511b6e-d153-4d9f-b576-9ba32a0036c0",
+    nom: "Shell Togbato",
+    lat: 6.138377,
+    lon: 1.210543,
+    ordre: 6,
+  },
+  {
+    id: "856f7b37-503c-4481-887c-6e0d839d569e",
+    nom: "CHU Sylvanus Olympio",
+    lat: 6.143042,
+    lon: 1.207113,
+    ordre: 7,
+  },
+  {
+    id: "daa8afd4-61dd-4c23-b11c-f9fa9f25390d",
+    nom: "Collège Protestant",
+    lat: 6.147718,
+    lon: 1.202776,
+    ordre: 8,
+  },
+  {
+    id: "3fbb49d9-d42d-4e42-84b2-c3611623331b",
+    nom: "Collège Plateau",
+    lat: 6.15407,
+    lon: 1.201581,
+    ordre: 9,
+  },
+  {
+    id: "08979346-691e-4f11-a63c-62264d284efd",
+    nom: "Todman",
+    lat: 6.158134,
+    lon: 1.201718,
+    ordre: 10,
+  },
+  {
+    id: "7b08b91f-0856-4e36-8560-866b2f5b8d78",
+    nom: "Atikpamonou",
+    lat: 6.163453,
+    lon: 1.202075,
+    ordre: 11,
+  },
+  {
+    id: "80ffd14c-d56b-4034-b294-96e4f9ff78a1",
+    nom: "Total Atikoumé",
+    lat: 6.167395,
+    lon: 1.201528,
+    ordre: 12,
+  },
+  {
+    id: "18792da3-d042-4718-b5eb-cb9879b232dd",
+    nom: "Commissariat Donou",
+    lat: 6.170588,
+    lon: 1.199372,
+    ordre: 13,
+  },
+  {
+    id: "15bdb637-3854-44cc-9acc-0b734b949b5a",
+    nom: "EPP GAKLI",
+    lat: 6.175048,
+    lon: 1.198017,
+    ordre: 14,
+  },
+  {
+    id: "1fd8dee8-b137-4702-8430-9c0746651889",
+    nom: "Baobab",
+    lat: 6.178668,
+    lon: 1.196379,
+    ordre: 15,
+  },
+  {
+    id: "037f8e0f-2532-4241-a64d-d1268b78343c",
+    nom: "Pharmacie Djidjolé",
+    lat: 6.181071,
+    lon: 1.195247,
+    ordre: 16,
+  },
+  {
+    id: "707499a0-3541-4376-ba2b-0b35b05860ba",
+    nom: "Commissariat 6ème arrondissement",
+    lat: 6.184455,
+    lon: 1.194274,
+    ordre: 17,
+  },
+  {
+    id: "03e8bf3b-c8cc-4450-b1ae-0bcf72ef09d6",
+    nom: "ADEBAYOR",
+    lat: 6.186919,
+    lon: 1.193291,
+    ordre: 18,
+  },
+  {
+    id: "d7c4cd2d-0386-4926-9855-a3d999a9c442",
+    nom: "Carrefour Gblinkomè",
+    lat: 6.191258,
+    lon: 1.191364,
+    ordre: 19,
+  },
+  {
+    id: "713dd94e-d48d-4c31-8584-004d3f9655fa",
+    nom: "Marché Totsi",
+    lat: 6.19474,
+    lon: 1.189395,
+    ordre: 20,
+  },
+  {
+    id: "f1a4cd34-60e9-486f-973d-1c4d8bc94294",
+    nom: "Jess Hôtel",
+    lat: 6.200277,
+    lon: 1.188312,
+    ordre: 21,
+  },
+  {
+    id: "677d9135-8c1d-4b02-a316-aa7b0dcf2ef4",
+    nom: "Fin pavé Adidoadin",
+    lat: 6.20396,
+    lon: 1.187126,
+    ordre: 22,
+  },
+  {
+    id: "96025af8-17e7-4c2d-aaaf-f6362ea439fe",
+    nom: "Hôtel Nathanael",
+    lat: 6.20372,
+    lon: 1.184409,
+    ordre: 23,
+  },
+  {
+    id: "cc12cd28-b2ed-40f4-8b99-dbdead2c332f",
+    nom: "Limousine",
+    lat: 6.20141,
+    lon: 1.182048,
+    ordre: 24,
+  },
+  {
+    id: "1a8eed22-4a36-46eb-a7a3-f598817a8bbf",
+    nom: "Orabank/Limousine",
+    lat: 6.201484,
+    lon: 1.181513,
+    ordre: 25,
+  },
+  {
+    id: "45884b35-135b-4a50-892f-6e0a95520028",
+    nom: "Complexe scolaire le Jourdain",
+    lat: 6.205372,
+    lon: 1.182351,
+    ordre: 26,
+  },
+  {
+    id: "662231a3-6414-40f0-bf1b-16839cb85cad",
+    nom: "Bar la FIESTA",
+    lat: 6.207526,
+    lon: 1.181796,
+    ordre: 27,
+  },
+  {
+    id: "55741885-6f1c-4282-b86b-3cb616037df2",
+    nom: "Complexe scolaire la Volonté",
+    lat: 6.209392,
+    lon: 1.179651,
+    ordre: 28,
+  },
+  {
+    id: "074c10de-e0f2-4e23-be03-69f566ee0cf9",
+    nom: "Pharmacie des Orchidées",
+    lat: 6.211294,
+    lon: 1.177377,
+    ordre: 29,
+  },
+  {
+    id: "a6b890f8-c91d-44f8-a678-30f9a89914cc",
+    nom: "Antenne Moov",
+    lat: 6.212791,
+    lon: 1.175655,
+    ordre: 30,
+  },
+  {
+    id: "5f93a99e-341e-45f4-b5d5-21ae396df3df",
+    nom: "Pharmacie Dieu Donnée",
+    lat: 6.21568,
+    lon: 1.172304,
+    ordre: 31,
+  },
+  {
+    id: "f33b2b21-0d83-4901-9a34-d7c789976d3a",
+    nom: "Entreprise de l'Union",
+    lat: 6.218516,
+    lon: 1.169019,
+    ordre: 32,
+  },
+];
 
 export const L18_stops_aller: Stop = [
   {
@@ -709,11 +1186,13 @@ export const L19_stops_retour: Stop = [
 ];
 
 export const STOPS_BY_LINE: Record<LineNumber, Record<Direction, Stop>> = {
+  L12: { aller: L12_stops_aller, retour: L12_stops_retour },
   L18: { aller: L18_stops_aller, retour: L18_stops_retour },
   L19: { aller: L19_stops_aller, retour: L19_stops_retour },
 };
 
 export const LINE_NAMES: Record<LineNumber, string> = {
+  L12: "ENTREPRISE DE L'UNION - BIA",
   L18: "ADAKPAME - CAMPUS",
   L19: "AKODESSEWA - CAMPUS",
 };

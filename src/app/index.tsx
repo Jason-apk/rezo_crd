@@ -4,11 +4,11 @@ import { LinePicker } from "@/components/line-picker";
 import { RouteBadge } from "@/components/route-badge";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Collapsible } from "@/components/ui/collapsible";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { Spacing } from "@/constants/theme";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ScrollView, View } from "react-native";
 import { sendReport } from "../../lib/reports";
 import { getAvailableLines } from "../../lib/stops";
 import { useGpsPing } from "../../lib/useGpsping";
@@ -64,7 +64,10 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+    <ScrollView
+      style={{ flex: 1, marginTop: 50 }}
+      //edges={["top"]
+    >
       <ThemedView
         style={{ flex: 1, padding: Spacing.four, gap: Spacing.three }}
       >
@@ -119,7 +122,35 @@ export default function Home() {
           loading={reporting}
         />
         {reportMsg && <ThemedText type="small">{reportMsg}</ThemedText>}
+        <View style={{ height: 50 }}></View>
+        <Collapsible
+          title="Comment marche REZO"
+          subtitle="Une communauté qui partage l'info pour que personne n'attende dans le flou."
+        >
+          <View style={{ gap: Spacing.two }}>
+            <ThemedText type="small">
+              📍 Quand tu es dans un bus, ton téléphone indique discrètement la
+              position du bus. Pas de compte, pas de données personnelles.
+            </ThemedText>
+            <ThemedText type="small">
+              ⏱️ Avec ces infos, on calcule combien de temps il reste à attendre
+              à chaque arrêt.
+            </ThemedText>
+            <ThemedText type="small">
+              ⚠️ Si un bus tombe en panne, tu peux le signaler en un geste pour
+              prévenir les autres.
+            </ThemedText>
+            <ThemedText type="small">
+              🔒 Ta position reste anonyme : personne ne sait que c'est toi qui
+              partages.
+            </ThemedText>
+            <ThemedText type="small">
+              🤝 Plus on est nombreux à participer, plus les temps d'attente
+              affichés sont justes.
+            </ThemedText>
+          </View>
+        </Collapsible>
       </ThemedView>
-    </SafeAreaView>
+    </ScrollView>
   );
 }
