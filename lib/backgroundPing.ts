@@ -30,34 +30,36 @@ export function onPingResult(cb: Listener) {
 }
 
 // ⚠️ defineTask doit s'exécuter au chargement du module, hors de tout composant
-TaskManager.defineTask(TASK_NAME, async ({ data, error }: any) => {
-  if (error) {
-    listeners.forEach((l) => l(false, error.message));
-    return;
-  }
-  const locations: Location.LocationObject[] | undefined = data?.locations;
-  if (!locations?.length) return;
+if (Platform.OS !== "web") {
+  TaskManager.defineTask(TASK_NAME, async ({ data, error }: any) => {
+    if (error) {
+      listeners.forEach((l) => l(false, error.message));
+      return;
+    }
+    const locations: Location.LocationObject[] | undefined = data?.locations;
+    if (!locations?.length) return;
 
-  const raw = await AsyncStorage.getItem(SESSION_KEY);
-  if (!raw) return; // pas de session active : on ne fait rien
-  const session: Session = JSON.parse(raw);
+    const raw = await AsyncStorage.getItem(SESSION_KEY);
+    if (!raw) return; // pas de session active : on ne fait rien
+    const session: Session = JSON.parse(raw);
 
-  const loc = locations[locations.length - 1]; // la plus récente
-  const speed = loc.coords.speed;
+    const loc = locations[locations.length - 1]; // la plus récente
+    const speed = loc.coords.speed;
 
-  const { error: rpcError } = await supabase.rpc("submit_ping", {
-    p_device_hash: await getDeviceId(),
-    p_line_number: session.line,
-    p_direction: session.direction,
-    p_lat: loc.coords.latitude,
-    p_lng: loc.coords.longitude,
-    p_speed_kmh: speed != null && speed >= 0 ? speed * 3.6 : null,
-    p_accuracy_m: loc.coords.accuracy,
+    const { error: rpcError } = await supabase.rpc("submit_ping", {
+      p_device_hash: await getDeviceId(),
+      p_line_number: session.line,
+      p_direction: session.direction,
+      p_lat: loc.coords.latitude,
+      p_lng: loc.coords.longitude,
+      p_speed_kmh: speed != null && speed >= 0 ? speed * 3.6 : null,
+      p_accuracy_m: loc.coords.accuracy,
+    });
+
+    // TODO (étape 8) : si rpcError, stocker le ping localement pour le renvoyer
+    listeners.forEach((l) => l(!rpcError, rpcError?.message));
   });
-
-  // TODO (étape 8) : si rpcError, stocker le ping localement pour le renvoyer
-  listeners.forEach((l) => l(!rpcError, rpcError?.message));
-});
+}
 
 export async function startBackgroundPing(line: string, direction: 0 | 1) {
   await ensureNotificationPermission(); // <-- nouvelle ligne
