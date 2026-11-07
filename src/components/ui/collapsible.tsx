@@ -1,29 +1,24 @@
+import { colors, fontSize, radius, spacing } from "@/../theme/tokens";
 import { SymbolView } from "expo-symbols";
 import { PropsWithChildren, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
-
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
 
 type Props = PropsWithChildren & { title: string; subtitle?: string };
 
 export function Collapsible({ children, title, subtitle }: Props) {
   const [isOpen, setIsOpen] = useState(false);
-  const theme = useTheme();
 
   return (
-    <ThemedView>
+    <View>
       <Pressable
         style={({ pressed }) => [
           styles.heading,
           pressed && styles.pressedHeading,
         ]}
-        onPress={() => setIsOpen((value) => !value)}
+        onPress={() => setIsOpen((v) => !v)}
       >
-        <ThemedView type="backgroundElement" style={styles.button}>
+        <View style={styles.button}>
           <SymbolView
             name={{
               ios: "chevron.right",
@@ -32,56 +27,50 @@ export function Collapsible({ children, title, subtitle }: Props) {
             }}
             size={14}
             weight="bold"
-            tintColor={theme.text}
+            tintColor={colors.textPrimary}
             style={{ transform: [{ rotate: isOpen ? "-90deg" : "90deg" }] }}
           />
-        </ThemedView>
-
-        <ThemedView style={styles.titleBlock}>
-          <ThemedText type="smallBold">{title}</ThemedText>
-          {subtitle ? (
-            <ThemedText themeColor="textSecondary" type="small">
-              {subtitle}
-            </ThemedText>
-          ) : null}
-        </ThemedView>
+        </View>
+        <View style={styles.titleBlock}>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </View>
       </Pressable>
       {isOpen && (
         <Animated.View entering={FadeIn.duration(200)}>
-          <ThemedView type="backgroundElement" style={styles.content}>
-            {children}
-          </ThemedView>
+          <View style={styles.content}>{children}</View>
         </Animated.View>
       )}
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    flexDirection: "row",
-    alignItems: "flex-start", // au lieu de 'center' : le sous-titre fait 2 lignes
-    gap: Spacing.two,
+  heading: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  pressedHeading: { opacity: 0.7 },
+  titleBlock: { flex: 1, gap: 2 },
+  title: {
+    fontSize: fontSize.base,
+    fontWeight: "700",
+    color: colors.textPrimary,
   },
-  pressedHeading: {
-    opacity: 0.7,
-  },
-  titleBlock: {
-    flex: 1,
-    gap: 2,
-  },
+  subtitle: { fontSize: fontSize.sm, color: colors.textSecondary },
   button: {
-    width: Spacing.four,
-    height: Spacing.four,
-    borderRadius: 12,
+    width: spacing.xl,
+    height: spacing.xl,
+    borderRadius: radius.pill,
+    backgroundColor: colors.backgroundChip,
     justifyContent: "center",
     alignItems: "center",
   },
   content: {
-    marginTop: Spacing.three,
-    borderRadius: Spacing.three,
-    marginLeft: Spacing.four,
-    padding: Spacing.four,
-    gap: Spacing.two, // espace entre les 5 points
+    marginTop: spacing.sm,
+    borderRadius: radius.md,
+    marginLeft: spacing.xl,
+    padding: spacing.md,
+    backgroundColor: colors.backgroundChip,
+    gap: spacing.sm,
   },
 });
+
+// Dans index.tsx, le style "point" passe de fontSize.sm à fontSize.base avec un lineHeight explicite

@@ -3,6 +3,8 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { PermissionsAndroid, Platform } from "react-native";
 import { getDeviceId } from "./deviceId";
+import { humanizePingError } from "./errorMessages";
+import { isConnected } from "./network";
 import { supabase } from "./supabase";
 
 async function ensureNotificationPermission() {
@@ -57,7 +59,9 @@ if (Platform.OS !== "web") {
     });
 
     // TODO (étape 8) : si rpcError, stocker le ping localement pour le renvoyer
-    listeners.forEach((l) => l(!rpcError, rpcError?.message));
+    if (rpcError) {
+      listeners.forEach((l) => l(false, humanizePingError(rpcError.message)));
+    }
   });
 }
 
@@ -65,16 +69,26 @@ export async function startBackgroundPing(line: string, direction: 0 | 1) {
   await ensureNotificationPermission(); // <-- nouvelle ligne
 
   // Android et iOS imposent deux demandes successives
-  const fg = await Location.requestForegroundPermissionsAsync();
-  if (fg.status !== "granted")
-    throw new Error("Permission de localisation refusée");
-  const bg = await Location.requestBackgroundPermissionsAsync();
-  if (bg.status !== "granted") {
+  const online = await isConnected();
+  if (!online) {
     throw new Error(
-      "Choisis « Toujours autoriser » pour partager écran verrouillé",
+      "Pas de connexion internet. Vérifie ton réseau puis réessaie.",
     );
   }
 
+  const fg = await Location.requestForegroundPermissionsAsync();
+  if (fg.status !== "granted") {
+    throw new Error(
+      "La localisation est désactivée. Active-la dans les réglages pour te connecter au réseau.",
+    );
+  }
+
+  const bg = await Location.requestBackgroundPermissionsAsync();
+  if (bg.status !== "granted") {
+    throw new Error(
+      "Choisis « Toujours autoriser » la localisation pour partager même écran verrouillé.",
+    );
+  }
   await AsyncStorage.setItem(SESSION_KEY, JSON.stringify({ line, direction }));
 
   await Location.startLocationUpdatesAsync(TASK_NAME, {

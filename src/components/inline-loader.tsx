@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/use-theme";
+import { colors } from "@/../theme/tokens";
 import { ActivityIndicator } from "react-native";
 
 export function InlineLoader({
@@ -6,6 +6,5 @@ export function InlineLoader({
 }: {
   size?: "small" | "large";
 }) {
-  const theme = useTheme();
-  return <ActivityIndicator size={size} color={theme.tint} />;
+  return <ActivityIndicator size={size} color={colors.primary} />;
 }

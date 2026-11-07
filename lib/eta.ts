@@ -1,32 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
 
-export type ReportSummary = {
-  type: "BREAKDOWN";
-  count: number;
-  last_at: string;
+export type RankedBus = {
+  minutes: number;
+  status: "GREEN" | "ORANGE" | "RED";
+  distance_m: number;
+  contributors: number;
+  stalled: boolean;
+  reported_breakdown: boolean;
 };
 
-export type Eta = {
-  minutes: number | null;
-  status: "GREEN" | "ORANGE" | "RED";
-  source: "live" | "none";
-  contributors: number;
-  distance_m?: number;
-  last_ping_at?: string;
-  reports?: ReportSummary[];
-};
+export type EtaResult = { buses: RankedBus[] };
 
 const REFRESH_MS = 10_000;
 
-export function useEta(
-  stopId: string | null,
-  line: string | null,
-  direction: 0 | 1,
-) {
-  const [eta, setEta] = useState<Eta | null>(null);
+export function useEta(stopId: string | null, line: string | null) {
+  const [result, setResult] = useState<EtaResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [offline, setOffline] = useState(false);
   const stopRef = useRef(stopId);
   stopRef.current = stopId;
@@ -43,15 +33,14 @@ export function useEta(
         .rpc("get_eta", {
           p_stop_id: requested,
           p_line_number: line,
-          p_direction: direction,
+          p_direction: 0,
         })
         .abortSignal(controller.signal);
 
       if (error) throw error;
       if (stopRef.current !== requested) return;
 
-      setEta(data as Eta);
-      setUpdatedAt(new Date());
+      setResult(data as EtaResult);
       setOffline(false);
     } catch {
       setOffline(true);
@@ -59,16 +48,16 @@ export function useEta(
       clearTimeout(timeout);
       setLoading(false);
     }
-  }, [line, direction]);
+  }, [line]);
 
   useEffect(() => {
-    setEta(null);
+    setResult(null);
     if (!stopId || !line) return;
     setLoading(true);
     refresh();
     const t = setInterval(refresh, REFRESH_MS);
     return () => clearInterval(t);
-  }, [stopId, line, direction, refresh]);
+  }, [stopId, line, refresh]);
 
-  return { eta, loading, updatedAt, offline };
+  return { buses: result?.buses ?? [], loading, offline };
 }

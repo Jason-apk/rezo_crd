@@ -1,10 +1,16 @@
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { colors, fontSize, radius, spacing } from "@/../theme/tokens";
 import { useState } from "react";
-import { Linking, Modal, Pressable, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-// TODO: remplace par le vrai lien d'invitation de ton groupe
+// TODO: remplace par le vrai lien d'invitation
 const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/KdgdwsBd3TwKnDAJXN0SRT";
 
 type Props = { variant: "corner" | "floating" };
@@ -16,92 +22,109 @@ export function WhatsAppButton({ variant }: Props) {
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        style={[
-          {
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: "#25D366", // couleur officielle WhatsApp : hors thème, volontairement (icône de marque)
-            alignItems: "center",
-            justifyContent: "center",
-          },
-          variant === "floating" && {
-            position: "absolute",
-            bottom: Spacing.four,
-            right: Spacing.four,
-            elevation: 4,
-            shadowColor: "#000",
-            shadowOpacity: 0.2,
-            shadowRadius: 6,
-          },
-        ]}
+        style={[styles.fab, variant === "floating" && styles.floating]}
       >
-        <ThemedText style={{ fontSize: 22 }}>💬</ThemedText>
+        <Image
+          source={require("@/assets/images-rezo/whatsapp.png")}
+          style={styles.whsImage}
+        />
       </Pressable>
 
       <Modal
         visible={open}
-        presentationStyle="fullScreen"
-        backdropColor="rgba(0,0,0,0.5)"
+        transparent
         animationType="fade"
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.69)",
-            justifyContent: "flex-end",
-          }}
-          onPress={() => setOpen(false)}
-        >
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable onPress={(e) => e.stopPropagation()}>
-            <ThemedView
-              style={{
-                //   marginBottom: "50%",
-
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-                padding: Spacing.four,
-                gap: Spacing.three,
-              }}
-            >
-              <ThemedText type="subtitle">Rejoins le réseau REZO</ThemedText>
-              <ThemedText themeColor="textSecondary">
+            <View style={styles.sheet}>
+              <Text style={styles.sheetTitle}>Rejoins le réseau REZO</Text>
+              <Text style={styles.sheetSubtitle}>
                 Un groupe WhatsApp pour les usagers de REZO :
-              </ThemedText>
-              <View style={{ gap: Spacing.two }}>
-                <ThemedText>💬 Donne ton avis sur l'app</ThemedText>
-                <ThemedText>🤝 Échange avec les autres usagers</ThemedText>
-                <ThemedText>🚀 Aide à faire évoluer le réseau</ThemedText>
+              </Text>
+              <View style={{ gap: spacing.sm }}>
+                <Text style={styles.sheetPoint}>
+                  💬 Donne ton avis sur l'app
+                </Text>
+                <Text style={styles.sheetPoint}>
+                  🤝 Échange avec les autres usagers
+                </Text>
+                <Text style={styles.sheetPoint}>
+                  🚀 Aide à faire évoluer le réseau
+                </Text>
               </View>
               <Pressable
                 onPress={() => {
                   Linking.openURL(WHATSAPP_GROUP_URL);
                   setOpen(false);
                 }}
-                style={{
-                  backgroundColor: "#25D366",
-                  borderRadius: 10,
-                  padding: Spacing.three,
-                  alignItems: "center",
-                }}
+                style={styles.joinButton}
               >
-                <ThemedText style={{ color: "#fff", fontWeight: "700" }}>
-                  Rejoindre la communauté
-                </ThemedText>
+                <Text style={styles.joinText}>Rejoindre la communauté</Text>
               </Pressable>
               <Pressable
                 onPress={() => setOpen(false)}
-                style={{ alignItems: "center", padding: Spacing.two }}
+                style={{ alignItems: "center", padding: spacing.sm }}
               >
-                <ThemedText themeColor="textSecondary" type="small">
-                  Plus tard
-                </ThemedText>
+                <Text style={styles.laterText}>Plus tard</Text>
               </Pressable>
-            </ThemedView>
+            </View>
           </Pressable>
         </Pressable>
       </Modal>
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  fab: {
+    width: 42,
+    height: 42,
+    borderRadius: 100, // moitié exacte de width/height
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  floating: {
+    position: "absolute",
+    bottom: spacing.lg,
+    right: spacing.lg,
+  },
+  whsImage: {
+    width: 92,
+    height: 92,
+    resizeMode: "cover",
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.backgroundCard,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  sheetTitle: {
+    fontSize: fontSize.lg,
+    fontWeight: "700",
+    color: colors.textPrimary,
+  },
+  sheetSubtitle: { fontSize: fontSize.base, color: colors.textSecondary },
+  sheetPoint: { fontSize: fontSize.base, color: colors.textPrimary },
+  joinButton: {
+    backgroundColor: "#25D366",
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: "center",
+  },
+  joinText: { color: "#fff", fontWeight: "700" },
+  laterText: { color: colors.textSecondary, fontSize: fontSize.sm },
+});
