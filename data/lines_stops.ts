@@ -1,9 +1,9 @@
 /**
- * Données locales des lignes SOTRAL L12, L18 et L19 (arrêts ordonnés par ligne et par sens).
+ * Données locales des lignes SOTRAL L12, L17, L18 et L19 (arrêts ordonnés par ligne et par sens).
  * Source : tables Supabase (line_stops + bus_stops) — les `id` sont les UUID Supabase.
  * Convention de sens (direction 0 = "aller", direction 1 = "retour") :
- *  - L18, L19 : aller = vers Campus Nord, retour = depuis Campus Nord.
- *  - L12      : aller = Entreprise de l'Union -> BIA, retour = BIA -> Entreprise de l'Union.
+ *  - L17, L18, L19 : aller = vers Campus Nord, retour = depuis Campus Nord.
+ *  - L12           : aller = Entreprise de l'Union -> BIA, retour = BIA -> Entreprise de l'Union.
  */
 
 export type StopPoint = {
@@ -16,7 +16,7 @@ export type StopPoint = {
 
 export type Stop = StopPoint[];
 
-export type LineNumber = "L12" | "L18" | "L19";
+export type LineNumber = "L12" | "L17" | "L18" | "L19";
 export type Direction = "aller" | "retour";
 
 export const L12_stops_aller: Stop = [
@@ -491,6 +491,250 @@ export const L12_stops_retour: Stop = [
     lat: 6.218516,
     lon: 1.169019,
     ordre: 32,
+  },
+];
+
+export const L17_stops_aller: Stop = [
+  {
+    id: "05df8055-b762-417f-90af-e0f2fb34b28f",
+    nom: "Adjololo",
+    lat: 6.125775,
+    lon: 1.200681,
+    ordre: 1,
+  },
+  {
+    id: "a860c476-5a8f-4ef8-aa56-acc45a837462",
+    nom: "Lycée Nyékonakpoè",
+    lat: 6.126408,
+    lon: 1.203408,
+    ordre: 2,
+  },
+  {
+    id: "88e13496-a369-408c-8295-32bc538e2cf5",
+    nom: "Total Nyékonakpoe",
+    lat: 6.127126,
+    lon: 1.206511,
+    ordre: 3,
+  },
+  {
+    id: "a23bc48d-d4ad-4b0d-ace8-09e8ffc4ce92",
+    nom: "ANPE Nyékonakpoe",
+    lat: 6.128031,
+    lon: 1.209416,
+    ordre: 4,
+  },
+  {
+    id: "df0a3cfc-7d2d-4058-9f8c-2234db59c878",
+    nom: "DHL",
+    lat: 6.130845,
+    lon: 1.212749,
+    ordre: 5,
+  },
+  {
+    id: "4df3c9e9-d1b3-4b75-beae-3e6e03b13a9c",
+    nom: "Direction LONATO",
+    lat: 6.133327,
+    lon: 1.215212,
+    ordre: 6,
+  },
+  {
+    id: "e0e6974a-8334-43f8-a200-9efbb3b3d1ce",
+    nom: "CNTT",
+    lat: 6.136493,
+    lon: 1.22092,
+    ordre: 7,
+  },
+  {
+    id: "a5f2760f-8f9c-4748-bbc6-34b76021cbd0",
+    nom: "Shell le Togo",
+    lat: 6.139651,
+    lon: 1.221261,
+    ordre: 8,
+  },
+  {
+    id: "f687f3c8-ce14-47d9-b382-7de165d447ea",
+    nom: "RAMCO",
+    lat: 6.148768,
+    lon: 1.218641,
+    ordre: 9,
+  },
+  {
+    id: "e812e998-0842-45fb-b309-947dd05faf23",
+    nom: "SOTED",
+    lat: 6.152552,
+    lon: 1.221402,
+    ordre: 10,
+  },
+  {
+    id: "7065392e-fd97-417f-b353-2410fdc82a3a",
+    nom: "Garage Central",
+    lat: 6.159701,
+    lon: 1.225394,
+    ordre: 11,
+  },
+  {
+    id: "0ca24868-4162-4d77-8300-c0ef5fda68a9",
+    nom: "Sazof",
+    lat: 6.160712,
+    lon: 1.224842,
+    ordre: 12,
+  },
+  {
+    id: "fed67636-037e-4dee-82cd-edf259935631",
+    nom: "Bar 3k",
+    lat: 6.165822,
+    lon: 1.222492,
+    ordre: 13,
+  },
+  {
+    id: "bf7e02b9-5b3a-4fb6-849a-1a9bdca8d3cc",
+    nom: "FDS",
+    lat: 6.174695,
+    lon: 1.214944,
+    ordre: 14,
+  },
+  {
+    id: "86de3ba0-f937-4387-a98f-5e4f40f184b3",
+    nom: "Marché Gayobor",
+    lat: 6.176551,
+    lon: 1.211553,
+    ordre: 15,
+  },
+  {
+    id: "d8c33f87-093e-41bc-93e5-786b9521b42a",
+    nom: "Terminus Campus Nord",
+    lat: 6.182538,
+    lon: 1.209322,
+    ordre: 16,
+  },
+];
+
+export const L17_stops_retour: Stop = [
+  {
+    id: "d8c33f87-093e-41bc-93e5-786b9521b42a",
+    nom: "Terminus Campus Nord",
+    lat: 6.182538,
+    lon: 1.209322,
+    ordre: 1,
+  },
+  {
+    id: "1242fcca-8b49-4277-a019-a7a345f2facb",
+    nom: "Marché Gayobor",
+    lat: 6.176341,
+    lon: 1.211554,
+    ordre: 2,
+  },
+  {
+    id: "b144c2ce-805e-4526-b0bf-d4e8514fca07",
+    nom: "FDS",
+    lat: 6.174685,
+    lon: 1.214846,
+    ordre: 3,
+  },
+  {
+    id: "97b56f42-f338-4c90-a0c0-dfc871ab7295",
+    nom: "Terminus Campus Sud",
+    lat: 6.170124,
+    lon: 1.216348,
+    ordre: 4,
+  },
+  {
+    id: "ce305733-ac55-4fb5-aa5f-feae0d076a2a",
+    nom: "Campus Sud",
+    lat: 6.170987,
+    lon: 1.220062,
+    ordre: 5,
+  },
+  {
+    id: "2fa14552-f4c0-4a18-9dd1-52b4ce55ff83",
+    nom: "Bar 3k",
+    lat: 6.164312,
+    lon: 1.223008,
+    ordre: 6,
+  },
+  {
+    id: "7c2f3cbf-42dc-4ce1-86c7-9d34425fbf38",
+    nom: "Sazof",
+    lat: 6.160771,
+    lon: 1.224699,
+    ordre: 7,
+  },
+  {
+    id: "8ba64c19-5c5f-4478-807d-1871a5e6b2d1",
+    nom: "Garage Central",
+    lat: 6.158696,
+    lon: 1.225846,
+    ordre: 8,
+  },
+  {
+    id: "e50bbdf5-a2d4-4af2-ae66-d272761524f1",
+    nom: "SOTED",
+    lat: 6.152002,
+    lon: 1.220811,
+    ordre: 9,
+  },
+  {
+    id: "4c832345-a1f8-4d51-b356-ce14fcad9a07",
+    nom: "RAMCO",
+    lat: 6.149091,
+    lon: 1.218549,
+    ordre: 10,
+  },
+  {
+    id: "a5f2760f-8f9c-4748-bbc6-34b76021cbd0",
+    nom: "Shell le Togo",
+    lat: 6.139651,
+    lon: 1.221261,
+    ordre: 11,
+  },
+  {
+    id: "20c6546d-e868-4418-8c10-4b0c396f275d",
+    nom: "CNTT",
+    lat: 6.13622,
+    lon: 1.219847,
+    ordre: 12,
+  },
+  {
+    id: "7a3e4b67-0cdb-4ec3-88c7-d2efe2ceb3a3",
+    nom: "Direction LONATO",
+    lat: 6.133047,
+    lon: 1.214822,
+    ordre: 13,
+  },
+  {
+    id: "66319ee0-dec2-46ad-b906-6f14cf13fcfb",
+    nom: "DHL",
+    lat: 6.130893,
+    lon: 1.212687,
+    ordre: 14,
+  },
+  {
+    id: "c549780a-98f1-4ed7-9f50-49ead65be94e",
+    nom: "ANPE Nyékonakpoe",
+    lat: 6.128202,
+    lon: 1.209697,
+    ordre: 15,
+  },
+  {
+    id: "12573a76-1636-497f-8102-44e6d1ad2870",
+    nom: "Total Nyékonakpoe",
+    lat: 6.127347,
+    lon: 1.207439,
+    ordre: 16,
+  },
+  {
+    id: "09b91121-89d7-4889-ad5f-9d05718b15e7",
+    nom: "Lycée Nyékonakpoè",
+    lat: 6.126587,
+    lon: 1.20415,
+    ordre: 17,
+  },
+  {
+    id: "997ea911-b019-4785-ac5b-c4ff979cb634",
+    nom: "Adjololo",
+    lat: 6.125682,
+    lon: 1.20029,
+    ordre: 18,
   },
 ];
 
@@ -1187,12 +1431,14 @@ export const L19_stops_retour: Stop = [
 
 export const STOPS_BY_LINE: Record<LineNumber, Record<Direction, Stop>> = {
   L12: { aller: L12_stops_aller, retour: L12_stops_retour },
+  L17: { aller: L17_stops_aller, retour: L17_stops_retour },
   L18: { aller: L18_stops_aller, retour: L18_stops_retour },
   L19: { aller: L19_stops_aller, retour: L19_stops_retour },
 };
 
 export const LINE_NAMES: Record<LineNumber, string> = {
   L12: "ENTREPRISE DE L'UNION - BIA",
+  L17: "ADJOLOLO - CAMPUS",
   L18: "ADAKPAME - CAMPUS",
   L19: "AKODESSEWA - CAMPUS",
 };
