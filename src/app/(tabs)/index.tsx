@@ -1,26 +1,41 @@
-import { colors, fontSize, spacing } from "@/../theme/tokens";
+import { colors, fontSize, radius, spacing } from "@/../theme/tokens";
 import { AppButton } from "@/components/app-button";
 import { LineSelectorRow } from "@/components/line-selector-row";
 import { Collapsible } from "@/components/ui/collapsible";
+import { UpdateDebugBadge } from "@/components/update-debug-badge";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { useEffect, useRef, useState } from "react";
-import { StatusBar, StyleSheet, Text, View } from "react-native";
+import { AppState, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { humanizePingError } from "../../../lib/errorMessages";
+import {
+  getLocationPermissionState,
+  type PermissionState,
+} from "../../../lib/permissions";
 import { sendReport } from "../../../lib/reports";
 import { getAvailableLines } from "../../../lib/stops";
 import { useGpsPing } from "../../../lib/useGpsping";
 
 const lines = getAvailableLines();
 
+const STATUS_CONFIG = {
+  disconnected: { color: colors.statusGray, label: "Non connecté" },
+  connecting: { color: colors.statusAmber, label: "Connexion en cours…" },
+  connected: {
+    color: colors.statusGreen,
+    label: "Connecté · tu partages ta position",
+  },
+  error: { color: colors.statusRose, label: "Problème de connexion" },
+} as const;
+
 export default function Home() {
   const [line, setLine] = useState<string>(lines[0]?.number ?? "");
-  const { active, pingCount, session, lastError, start, stop } = useGpsPing();
-  const [starting, setStarting] = useState(false);
+  const { status, errorMessage, pingCount, lastPingAt, session, start, stop } =
+    useGpsPing();
   const [breakdownOn, setBreakdownOn] = useState(false);
   const [reportMsg, setReportMsg] = useState<string | null>(null);
   const breakdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [connectMsg, setConnectMsg] = useState<string | null>(null);
+  const [locationState, setLocationState] =
+    useState<PermissionState>("unknown");
 
   useEffect(() => {
     if (session) setLine(session.line);
@@ -32,21 +47,22 @@ export default function Home() {
     [],
   );
 
-  async function handleToggleConnect() {
-    if (active) {
-      await stop();
+  // Vérifie la permission au montage ET quand l'utilisateur revient depuis les réglages système
+  useEffect(() => {
+    const check = () => getLocationPermissionState().then(setLocationState);
+    check();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") check();
+    });
+    return () => sub.remove();
+  }, []);
+
+  function handleTogglePress() {
+    if (status === "connected") {
+      stop();
       return;
     }
-    setStarting(true);
-    try {
-      await start(line, 0);
-    } catch (e: any) {
-      setConnectMsg(
-        e.message ?? "Impossible de se connecter au réseau. Réessaie.",
-      );
-    } finally {
-      setStarting(false);
-    }
+    start(line, 0);
   }
 
   async function toggleBreakdown() {
@@ -67,63 +83,89 @@ export default function Home() {
     }
   }
 
+  const buttonTitle =
+    status === "connected"
+      ? "Je me déconnecte du réseau"
+      : status === "error"
+        ? "Réessayer"
+        : "Je me connecte au réseau";
+
+  const statusCfg = STATUS_CONFIG[status];
+  const lastPingLabel = lastPingAt
+    ? `Dernier envoi à ${lastPingAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+    : null;
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: colors.background }}
       edges={["top"]}
     >
-      <StatusBar
-        barStyle={"dark-content"}
-        backgroundColor={colors.background}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Acceder au Rezo</Text>
+          <Text style={styles.title}>Réseau REZO</Text>
           <WhatsAppButton variant="corner" />
         </View>
+
+        {locationState === "denied" && (
+          <View style={styles.warningBanner}>
+            <Text style={styles.warningText}>
+              📍 La localisation est désactivée pour REZO. Active-la dans les
+              réglages de ton téléphone pour pouvoir partager ta position.
+            </Text>
+          </View>
+        )}
+
+        {/* Carte d'état : seule source de vérité visuelle, toujours visible */}
+        <View style={styles.statusCard}>
+          <View style={styles.statusRow}>
+            <View style={[styles.dot, { backgroundColor: statusCfg.color }]} />
+            <Text style={styles.statusLabel}>{statusCfg.label}</Text>
+          </View>
+          {status === "connected" && (
+            <>
+              <Text style={styles.statusDetail}>
+                Contributions envoyées : {pingCount}
+              </Text>
+              {lastPingLabel && (
+                <Text style={styles.statusDetail}>{lastPingLabel}</Text>
+              )}
+            </>
+          )}
+          {errorMessage && (
+            <Text style={styles.statusError}>{errorMessage}</Text>
+          )}
+        </View>
+
+        <View style={{ height: spacing.md }} />
 
         <LineSelectorRow
           lines={lines}
           selected={line}
           onSelect={setLine}
-          disabled={active}
+          disabled={status === "connected" || status === "connecting"}
         />
 
         <View style={{ height: spacing.lg }} />
 
         <AppButton
-          title={
-            active ? "Je me déconnecte du réseau" : "Je me connecte au réseau"
-          }
-          onPress={handleToggleConnect}
-          loading={starting}
-          variant="primary"
-        />
-        {connectMsg && <Text style={styles.errorText}>{connectMsg}</Text>}
-        <AppButton
-          title={
-            active ? "Je me déconnecte du réseau" : "Je me connecte au réseau"
-          }
-          onPress={handleToggleConnect}
-          loading={starting}
+          title={buttonTitle}
+          onPress={handleTogglePress}
+          loading={status === "connecting"}
           variant="primary"
         />
 
-        <Text style={styles.statsText}>
-          Contributions envoyées : {pingCount}
-        </Text>
-        {lastError && (
-          <Text style={styles.errorText}>{humanizePingError(lastError)}</Text>
-        )}
         <View style={{ height: spacing.lg }} />
 
-        <AppButton
-          title={breakdownOn ? "✓ Panne signalée" : "Signaler une panne"}
-          onPress={toggleBreakdown}
-          disabled={!active}
-          variant={breakdownOn ? "primary" : "secondary"}
-        />
-        {reportMsg && <Text style={styles.statsText}>{reportMsg}</Text>}
+        <View style={styles.card}>
+          <AppButton
+            title={breakdownOn ? "✓ Panne signalée" : "Signaler une panne"}
+            onPress={toggleBreakdown}
+            disabled={status !== "connected"}
+            variant={breakdownOn ? "primary" : "secondary"}
+          />
+          {reportMsg && <Text style={styles.statsText}>{reportMsg}</Text>}
+        </View>
 
         <View style={{ flex: 1 }} />
 
@@ -153,6 +195,7 @@ export default function Home() {
           </Text>
         </Collapsible>
       </View>
+      <UpdateDebugBadge />
     </SafeAreaView>
   );
 }
@@ -170,6 +213,40 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.textPrimary,
   },
+  warningBanner: {
+    backgroundColor: "#FDECEA",
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  warningText: { fontSize: fontSize.sm, color: colors.statusRose },
+  statusCard: {
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  statusLabel: {
+    fontSize: fontSize.base,
+    fontWeight: "600",
+    color: colors.textPrimary,
+  },
+  statusDetail: {
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+  },
+  statusError: {
+    fontSize: fontSize.sm,
+    color: colors.statusRose,
+    marginTop: spacing.xs,
+  },
+  card: {
+    backgroundColor: colors.backgroundCard,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
   point: {
     fontSize: fontSize.base,
     lineHeight: 20,
@@ -181,11 +258,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     marginTop: spacing.sm,
-  },
-  errorText: {
-    fontSize: fontSize.sm,
-    color: colors.statusRose,
-    textAlign: "center",
-    marginTop: spacing.xs,
   },
 });

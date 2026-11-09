@@ -26,13 +26,6 @@
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.RECEIVE_BOOT_COMPLETED",
-        "android.permission.POST_NOTIFICATIONS",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE",
         "android.permission.FOREGROUND_SERVICE_LOCATION"
       ]
     },
@@ -55,8 +48,9 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#EAF6F3",
-          "image": "./assets/images-rezo/splash-icon.png",
-          "imageWidth": 96
+          "image": "./assets/images-rezo/icon.png",
+          "imageWidth": 120,
+          "resizeMode": "contain"
         }
       ],
       "expo-sqlite"
