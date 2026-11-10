@@ -1,11 +1,18 @@
 import { colors, fontSize, radius, spacing } from "@/../theme/tokens";
 import { AppButton } from "@/components/app-button";
 import { LineSelectorRow } from "@/components/line-selector-row";
+import { ReportFab } from "@/components/report-fab";
 import { Collapsible } from "@/components/ui/collapsible";
-import { UpdateDebugBadge } from "@/components/update-debug-badge";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { useEffect, useRef, useState } from "react";
-import { AppState, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   getLocationPermissionState,
@@ -29,10 +36,9 @@ const STATUS_CONFIG = {
 
 export default function Home() {
   const [line, setLine] = useState<string>(lines[0]?.number ?? "");
-  const { status, errorMessage, pingCount, lastPingAt, session, start, stop } =
+  const { status, errorMessage, pingCount, session, start, stop } =
     useGpsPing();
   const [breakdownOn, setBreakdownOn] = useState(false);
-  const [reportMsg, setReportMsg] = useState<string | null>(null);
   const breakdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [locationState, setLocationState] =
     useState<PermissionState>("unknown");
@@ -47,7 +53,6 @@ export default function Home() {
     [],
   );
 
-  // Vérifie la permission au montage ET quand l'utilisateur revient depuis les réglages système
   useEffect(() => {
     const check = () => getLocationPermissionState().then(setLocationState);
     check();
@@ -59,18 +64,42 @@ export default function Home() {
 
   function handleTogglePress() {
     if (status === "connected") {
-      stop();
+      Alert.alert(
+        "Te déconnecter du réseau ?",
+        "Tu arrêteras de partager ta position. Les autres usagers ne verront plus ta contribution.",
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Me déconnecter",
+            style: "destructive",
+            onPress: () => stop(),
+          },
+        ],
+      );
       return;
     }
     start(line, 0);
   }
 
-  async function toggleBreakdown() {
-    if (breakdownOn) {
-      setBreakdownOn(false);
-      if (breakdownTimer.current) clearTimeout(breakdownTimer.current);
+  function handleReportPress() {
+    if (status !== "connected") {
+      Alert.alert(
+        "Connecte-toi d'abord",
+        "Tu dois partager ta position pour signaler une panne.",
+      );
       return;
     }
+    Alert.alert(
+      "Signaler une panne ?",
+      "Les autres usagers verront que ton bus semble à l'arrêt ou en panne.",
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Signaler", style: "destructive", onPress: confirmReport },
+      ],
+    );
+  }
+
+  async function confirmReport() {
     const r = await sendReport(line, 0);
     if (r === "ok" || r === "duplicate") {
       setBreakdownOn(true);
@@ -79,21 +108,21 @@ export default function Home() {
         10 * 60 * 1000,
       );
     } else {
-      setReportMsg("Connecte-toi d'abord au réseau");
+      Alert.alert(
+        "Échec",
+        "Le signalement n'a pas pu être envoyé. Réessaie dans un instant.",
+      );
     }
   }
 
   const buttonTitle =
     status === "connected"
-      ? "Je me déconnecte du réseau"
+      ? "Se déconnecter"
       : status === "error"
         ? "Réessayer"
-        : "Je me connecte au réseau";
-
+        : "Se connecter";
+  const buttonVariant = status === "connected" ? "danger" : "primary";
   const statusCfg = STATUS_CONFIG[status];
-  const lastPingLabel = lastPingAt
-    ? `Dernier envoi à ${lastPingAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
-    : null;
 
   return (
     <SafeAreaView
@@ -111,26 +140,20 @@ export default function Home() {
           <View style={styles.warningBanner}>
             <Text style={styles.warningText}>
               📍 La localisation est désactivée pour REZO. Active-la dans les
-              réglages de ton téléphone pour pouvoir partager ta position.
+              réglages pour partager ta position.
             </Text>
           </View>
         )}
 
-        {/* Carte d'état : seule source de vérité visuelle, toujours visible */}
         <View style={styles.statusCard}>
           <View style={styles.statusRow}>
             <View style={[styles.dot, { backgroundColor: statusCfg.color }]} />
             <Text style={styles.statusLabel}>{statusCfg.label}</Text>
           </View>
           {status === "connected" && (
-            <>
-              <Text style={styles.statusDetail}>
-                Contributions envoyées : {pingCount}
-              </Text>
-              {lastPingLabel && (
-                <Text style={styles.statusDetail}>{lastPingLabel}</Text>
-              )}
-            </>
+            <Text style={styles.statusDetail}>
+              Contributions envoyées : {pingCount}
+            </Text>
           )}
           {errorMessage && (
             <Text style={styles.statusError}>{errorMessage}</Text>
@@ -152,20 +175,8 @@ export default function Home() {
           title={buttonTitle}
           onPress={handleTogglePress}
           loading={status === "connecting"}
-          variant="primary"
+          variant={buttonVariant}
         />
-
-        <View style={{ height: spacing.lg }} />
-
-        <View style={styles.card}>
-          <AppButton
-            title={breakdownOn ? "✓ Panne signalée" : "Signaler une panne"}
-            onPress={toggleBreakdown}
-            disabled={status !== "connected"}
-            variant={breakdownOn ? "primary" : "secondary"}
-          />
-          {reportMsg && <Text style={styles.statsText}>{reportMsg}</Text>}
-        </View>
 
         <View style={{ flex: 1 }} />
 
@@ -194,8 +205,9 @@ export default function Home() {
             affichés sont justes.
           </Text>
         </Collapsible>
+
+        <ReportFab onPress={handleReportPress} active={breakdownOn} />
       </View>
-      <UpdateDebugBadge />
     </SafeAreaView>
   );
 }
@@ -242,21 +254,10 @@ const styles = StyleSheet.create({
     color: colors.statusRose,
     marginTop: spacing.xs,
   },
-  card: {
-    backgroundColor: colors.backgroundCard,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
   point: {
     fontSize: fontSize.base,
     lineHeight: 20,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
-  },
-  statsText: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    textAlign: "center",
-    marginTop: spacing.sm,
   },
 });

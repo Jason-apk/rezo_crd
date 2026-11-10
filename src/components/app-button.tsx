@@ -6,7 +6,7 @@ type Props = {
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
 };
 
 export function AppButton({
@@ -16,32 +16,32 @@ export function AppButton({
   loading,
   variant = "secondary",
 }: Props) {
-  const isPrimary = variant === "primary";
+  const bg =
+    variant === "primary"
+      ? colors.primary
+      : variant === "danger"
+        ? colors.dangerSoftBg
+        : colors.backgroundChip;
+  const fg =
+    variant === "primary"
+      ? colors.primaryText
+      : variant === "danger"
+        ? colors.dangerSoftText
+        : colors.textPrimary;
+
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
       style={[
         styles.base,
-        {
-          backgroundColor: isPrimary ? colors.primary : colors.backgroundChip,
-          opacity: disabled ? 0.5 : 1,
-        },
+        { backgroundColor: bg, opacity: disabled ? 0.5 : 1 },
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={isPrimary ? colors.primaryText : colors.primary}
-        />
+        <ActivityIndicator size="small" color={fg} />
       ) : (
-        <Text
-          style={{
-            color: isPrimary ? colors.primaryText : colors.textPrimary,
-            fontWeight: "600",
-            fontSize: fontSize.base,
-          }}
-        >
+        <Text style={{ color: fg, fontWeight: "600", fontSize: fontSize.base }}>
           {title}
         </Text>
       )}

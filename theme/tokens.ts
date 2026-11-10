@@ -16,6 +16,8 @@ export const colors = {
 
   border: "#E0E6F0",
   statusGray: "#A0A6B8",
+  dangerSoftBg: "#F8D7DC",
+  dangerSoftText: "#B23A4E",
 };
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 42 };
