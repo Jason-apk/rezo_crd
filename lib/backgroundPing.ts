@@ -4,6 +4,7 @@ import * as TaskManager from "expo-task-manager";
 import { PermissionsAndroid, Platform } from "react-native";
 import { getDeviceId } from "./deviceId";
 import { humanizePingError } from "./errorMessages";
+import { distanceToTerminus } from "./geofence";
 import { isConnected } from "./network";
 import { supabase } from "./supabase";
 
@@ -18,6 +19,7 @@ async function ensureNotificationPermission() {
 
 export const TASK_NAME = "rezo-background-ping";
 const SESSION_KEY = "rezo_ping_session";
+const TERMINUS_THRESHOLD_M = 100;
 
 export type Session = { line: string; direction: 0 | 1 };
 
@@ -57,7 +59,16 @@ if (Platform.OS !== "web") {
       p_speed_kmh: speed != null && speed >= 0 ? speed * 3.6 : null,
       p_accuracy_m: loc.coords.accuracy,
     });
-
+    const dist = distanceToTerminus(
+      session.line,
+      loc.coords.latitude,
+      loc.coords.longitude,
+    );
+    if (dist !== null && dist <= TERMINUS_THRESHOLD_M) {
+      await stopBackgroundPing();
+      listeners.forEach((l) => l(true, "__ARRIVED_AT_TERMINUS__")); // signal spécial, pas une erreur
+      return; // on n'envoie pas ce dernier ping, le partage est déjà terminé
+    }
     // TODO (étape 8) : si rpcError, stocker le ping localement pour le renvoyer
     if (rpcError) {
       listeners.forEach((l) => l(false, humanizePingError(rpcError.message)));

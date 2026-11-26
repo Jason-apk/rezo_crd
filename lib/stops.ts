@@ -4,7 +4,13 @@ import {
   type LineNumber,
 } from "../data/lines_stops";
 
-export type StopItem = { id: string; name: string; sequence: number };
+export type StopItem = {
+  id: string;
+  name: string;
+  sequence: number;
+  lat: number;
+  lon: number;
+};
 export type Line = { number: string; name: string };
 
 export function getAvailableLines(): Line[] {
@@ -24,5 +30,11 @@ export function getStops(line: string): StopItem[] {
   return list
     .slice()
     .sort((a, b) => a.ordre - b.ordre)
-    .map((s) => ({ id: s.id, name: s.nom, sequence: s.ordre }));
+    .map((s) => ({
+      id: s.id,
+      name: s.nom,
+      sequence: s.ordre,
+      lat: s.lat,
+      lon: s.lon,
+    }));
 }

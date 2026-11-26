@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert } from "react-native";
 import {
   getActiveSession,
+  onPingResult,
   Session,
   startBackgroundPing,
   stopBackgroundPing,
@@ -39,6 +41,24 @@ export function useGpsPing() {
         await stopBackgroundPing();
       }
     })();
+  }, []);
+
+  // Écoute uniquement le signal spécial d'arrivée au terminus, émis par la tâche de fond.
+  // Tout le reste (compteur, erreurs de ping) est géré par le sondage DB ci-dessous, pas par cet événement.
+  useEffect(() => {
+    return onPingResult((_ok, message) => {
+      if (message === "__ARRIVED_AT_TERMINUS__") {
+        setStatus("disconnected");
+        setSession(null);
+        setErrorMessage(null);
+        setPingCount(0);
+        setLastPingAt(null);
+        Alert.alert(
+          "Tu es arrivé",
+          "Le partage s'est arrêté automatiquement : tu es au Campus.",
+        );
+      }
+    });
   }, []);
 
   // Source de vérité unique : la base, interrogée régulièrement.

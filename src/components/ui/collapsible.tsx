@@ -3,6 +3,7 @@ import { SymbolView } from "expo-symbols";
 import { PropsWithChildren, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { ScrollView } from "react-native-reanimated/lib/typescript/Animated";
 
 type Props = PropsWithChildren & { title: string; subtitle?: string };
 
@@ -10,7 +11,7 @@ export function Collapsible({ children, title, subtitle }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <View>
+    <ScrollView>
       <Pressable
         style={({ pressed }) => [
           styles.heading,
@@ -41,7 +42,7 @@ export function Collapsible({ children, title, subtitle }: Props) {
           <View style={styles.content}>{children}</View>
         </Animated.View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -72,5 +73,3 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 });
-
-// Dans index.tsx, le style "point" passe de fontSize.sm à fontSize.base avec un lineHeight explicite

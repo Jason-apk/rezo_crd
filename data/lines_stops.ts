@@ -16,7 +16,7 @@ export type StopPoint = {
 
 export type Stop = StopPoint[];
 
-export type LineNumber = "L12" | "L13" | "L16" | "L17" | "L18" | "L19";
+export type LineNumber = "L12" | "L16";
 export type Direction = "aller" | "retour";
 
 export const L12_stops_aller: Stop = [
@@ -2213,19 +2213,19 @@ export const L19_stops_retour: Stop = [
 
 export const STOPS_BY_LINE: Record<LineNumber, Record<Direction, Stop>> = {
   L12: { aller: L12_stops_aller, retour: L12_stops_retour },
-  L13: { aller: L13_stops_aller, retour: L13_stops_retour },
+  // L13: { aller: L13_stops_aller, retour: L13_stops_retour },
   L16: { aller: L16_stops_aller, retour: L16_stops_retour },
-  L17: { aller: L17_stops_aller, retour: L17_stops_retour },
-  L18: { aller: L18_stops_aller, retour: L18_stops_retour },
-  L19: { aller: L19_stops_aller, retour: L19_stops_retour },
+  //L17: { aller: L17_stops_aller, retour: L17_stops_retour },
+  //L18: { aller: L18_stops_aller, retour: L18_stops_retour },
+  //L19: { aller: L19_stops_aller, retour: L19_stops_retour },
 };
 
 export const LINE_NAMES: Record<LineNumber, string> = {
   L12: "ENTREPRISE DE L'UNION - BIA",
-  L17: "ADJOLOLO - CAMPUS",
-  L18: "ADAKPAME - CAMPUS",
-  L19: "AKODESSEWA - CAMPUS",
-  L13: "ADETIKOPE - CAMPUS",
+  // L17: "ADJOLOLO - CAMPUS",
+  //L18: "ADAKPAME - CAMPUS",
+  //L19: "AKODESSEWA - CAMPUS",
+  // L13: "ADETIKOPE - CAMPUS",
   L16: "AKATO - SEGBE - CAMPUS",
 };
 

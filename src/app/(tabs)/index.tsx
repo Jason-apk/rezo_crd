@@ -1,9 +1,9 @@
 import { colors, fontSize, radius, spacing } from "@/../theme/tokens";
-import { AppButton } from "@/components/app-button";
 import { LineSelectorRow } from "@/components/line-selector-row";
+import { PowerButton } from "@/components/power-button";
 import { ReportFab } from "@/components/report-fab";
-import { Collapsible } from "@/components/ui/collapsible";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -14,25 +14,17 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { distanceToNearestStop } from "../../../lib/geofence";
 import {
   getLocationPermissionState,
   type PermissionState,
 } from "../../../lib/permissions";
 import { sendReport } from "../../../lib/reports";
-import { getAvailableLines } from "../../../lib/stops";
+import { getAvailableLines, getLineName } from "../../../lib/stops";
 import { useGpsPing } from "../../../lib/useGpsping";
 
 const lines = getAvailableLines();
-
-const STATUS_CONFIG = {
-  disconnected: { color: colors.statusGray, label: "Non connecté" },
-  connecting: { color: colors.statusAmber, label: "Connexion en cours…" },
-  connected: {
-    color: colors.statusGreen,
-    label: "Connecté · tu partages ta position",
-  },
-  error: { color: colors.statusRose, label: "Problème de connexion" },
-} as const;
+const OFF_LINE_THRESHOLD_M = 100;
 
 export default function Home() {
   const [line, setLine] = useState<string>(lines[0]?.number ?? "");
@@ -62,11 +54,11 @@ export default function Home() {
     return () => sub.remove();
   }, []);
 
-  function handleTogglePress() {
+  async function handlePowerPress() {
     if (status === "connected") {
       Alert.alert(
         "Te déconnecter du réseau ?",
-        "Tu arrêteras de partager ta position. Les autres usagers ne verront plus ta contribution.",
+        "Tu arrêteras de partager ta position.",
         [
           { text: "Annuler", style: "cancel" },
           {
@@ -78,7 +70,45 @@ export default function Home() {
       );
       return;
     }
-    start(line, 0);
+
+    // Vérification de position AVANT la confirmation de démarrage
+    try {
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const dist = distanceToNearestStop(
+        line,
+        pos.coords.latitude,
+        pos.coords.longitude,
+      );
+      if (dist !== null && dist > OFF_LINE_THRESHOLD_M) {
+        Alert.alert(
+          "Es-tu bien sur cette ligne ?",
+          `Ta position semble loin du trajet de ${getLineName(line)}. Veux-tu quand même commencer le partage ?`,
+          [
+            { text: "Annuler", style: "cancel" },
+            { text: "Oui, commencer", onPress: confirmStart },
+          ],
+        );
+        return;
+      }
+    } catch {
+      // position indisponible : on laisse la confirmation normale décider,
+      // startBackgroundPing gérera le refus de permission le cas échéant
+    }
+
+    confirmStart();
+  }
+
+  function confirmStart() {
+    Alert.alert(
+      "Commencer le partage ?",
+      `Tu vas partager la position du bus sur la ligne ${getLineName(line)}.`,
+      [
+        { text: "Annuler", style: "cancel" },
+        { text: "Commencer", onPress: () => start(line, 0) },
+      ],
+    );
   }
 
   function handleReportPress() {
@@ -115,14 +145,10 @@ export default function Home() {
     }
   }
 
-  const buttonTitle =
+  const bottomLabel =
     status === "connected"
-      ? "Se déconnecter"
-      : status === "error"
-        ? "Réessayer"
-        : "Se connecter";
-  const buttonVariant = status === "connected" ? "danger" : "primary";
-  const statusCfg = STATUS_CONFIG[status];
+      ? "Toucher pour arrêter le partage"
+      : "Commencer le partage";
 
   return (
     <SafeAreaView
@@ -136,6 +162,13 @@ export default function Home() {
           <WhatsAppButton variant="corner" />
         </View>
 
+        <LineSelectorRow
+          lines={lines}
+          selected={line}
+          onSelect={setLine}
+          disabled={status === "connected" || status === "connecting"}
+        />
+
         {locationState === "denied" && (
           <View style={styles.warningBanner}>
             <Text style={styles.warningText}>
@@ -145,13 +178,15 @@ export default function Home() {
           </View>
         )}
 
-        <View style={styles.statusCard}>
-          <View style={styles.statusRow}>
-            <View style={[styles.dot, { backgroundColor: statusCfg.color }]} />
-            <Text style={styles.statusLabel}>{statusCfg.label}</Text>
-          </View>
+        <View style={styles.centerZone}>
+          <PowerButton
+            connected={status === "connected"}
+            onPress={handlePowerPress}
+            disabled={status === "connecting"}
+          />
+          <Text style={styles.bottomLabel}>{bottomLabel}</Text>
           {status === "connected" && (
-            <Text style={styles.statusDetail}>
+            <Text style={styles.statsText}>
               Contributions envoyées : {pingCount}
             </Text>
           )}
@@ -160,51 +195,7 @@ export default function Home() {
           )}
         </View>
 
-        <View style={{ height: spacing.md }} />
-
-        <LineSelectorRow
-          lines={lines}
-          selected={line}
-          onSelect={setLine}
-          disabled={status === "connected" || status === "connecting"}
-        />
-
-        <View style={{ height: spacing.lg }} />
-
-        <AppButton
-          title={buttonTitle}
-          onPress={handleTogglePress}
-          loading={status === "connecting"}
-          variant={buttonVariant}
-        />
-
         <View style={{ flex: 1 }} />
-
-        <Collapsible
-          title="Comment marche REZO"
-          subtitle="Une communauté qui partage l'info pour que personne n'attende dans le flou."
-        >
-          <Text style={styles.point}>
-            📍 Ton téléphone indique discrètement la position du bus. Pas de
-            compte, pas de données personnelles.
-          </Text>
-          <Text style={styles.point}>
-            ⏱️ Avec ces infos, on calcule combien de temps il reste à attendre à
-            chaque arrêt.
-          </Text>
-          <Text style={styles.point}>
-            ⚠️ Si un bus tombe en panne, tu peux le signaler en un geste pour
-            prévenir les autres.
-          </Text>
-          <Text style={styles.point}>
-            🔒 Ta position reste anonyme : personne ne sait que c'est toi qui
-            partages.
-          </Text>
-          <Text style={styles.point}>
-            🤝 Plus on est nombreux à participer, plus les temps d'attente
-            affichés sont justes.
-          </Text>
-        </Collapsible>
 
         <ReportFab onPress={handleReportPress} active={breakdownOn} />
       </View>
@@ -229,35 +220,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#FDECEA",
     borderRadius: radius.md,
     padding: spacing.sm,
-    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
   warningText: { fontSize: fontSize.sm, color: colors.statusRose },
-  statusCard: {
-    backgroundColor: colors.backgroundCard,
-    borderRadius: radius.md,
-    padding: spacing.md,
-  },
-  statusRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  statusLabel: {
+  centerZone: { alignItems: "center", marginTop: spacing.xl, gap: spacing.sm },
+  bottomLabel: {
     fontSize: fontSize.base,
     fontWeight: "600",
     color: colors.textPrimary,
   },
-  statusDetail: {
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
+  statsText: { fontSize: fontSize.sm, color: colors.textSecondary },
   statusError: {
     fontSize: fontSize.sm,
     color: colors.statusRose,
-    marginTop: spacing.xs,
-  },
-  point: {
-    fontSize: fontSize.base,
-    lineHeight: 20,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    textAlign: "center",
+    paddingHorizontal: spacing.lg,
   },
 });
